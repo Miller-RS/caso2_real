@@ -1,8 +1,8 @@
 import socket
-import multiprocessing
-from functools import partial
+from multiprocessing import Pool
 
-HOST = "192.168.1.4"
+
+HOST = "192.168.1.8"
 PORT = 4444
 
 class Client50:
@@ -35,11 +35,14 @@ class Client50:
             self.cliente_socket.sendall(mensaje.encode('utf-8'))
 
             # Esperar la respuesta del servidor
-            respuesta = self.cliente_socket.recv(1024)
-            print('Respuesta del servidor:', respuesta.decode('utf-8'))
+            # respuesta = self.cliente_socket.recv(1024)
+            # print('Respuesta del servidor:', respuesta.decode('utf-8'))
 
         except ConnectionResetError:
             print('Se perdió la conexión con el servidor.')
+
+        finally:
+            self.cliente_socket.close()
 
     def cerrar_conexion(self):
         # Cerrar la conexión del cliente
@@ -58,48 +61,37 @@ class Client50:
       # self.procesar(x[1],x[2],x[3],x[4])
       self.calcular_integral_paralelo(x[1],x[2],x[3],x[4])
 
-    def evaluar_funcion(self, funcion,x):#7x^1+8x^2
+    def calcular(self, funcion,x, ancho):#7x^1+8x^2
       # Reemplazar la notación de potencia en la expresión
       funcion = funcion.replace('x^', '*x**')#7*x**1+8*x**2
       #Reemplazar el valor de x en la expresión
       funcion = funcion.replace('x', str(x))
       # Evaluar la expresión y obtener el resultado
-      resultado = eval(funcion)
-      return resultado
-      #return funcion
-
-    # def evaluar_funcion(self,expresion):
-    #   return self.cambio_funcion(expresion)
-
-    def calcular_area(self, base, altura):
-      return base * altura
+      funcion_x = eval(funcion)
+      area = ancho*funcion_x
+      return area
 
     # Función para calcular la suma de áreas de los rectángulos en paralelo
-    def calcular_integral_paralelo(self,expresion,a, b, num_rectangulos):
-        # Calcular el ancho de cada rectángulo
-        ancho = (b - a) / num_rectangulos
-        print("bandera 1")
-        # Crear la piscina de procesos
-        with multiprocessing.Pool() as pool:
-            print("bandera 2")
-            # Calcular las alturas de los rectángulos en paralelo
-            evaluar_funcion_parcial = partial(self.evaluar_funcion, expresion=expresion)#7x^1+8x^2
+    def calcular_integral_paralelo(self,funcion,a, b, num_rectangulos):
+        pool = Pool()
+        ancho = (b-a)/num_rectangulos
+        # calculamos x de la izquierda
+        xs = [5 + ancho*x for x in range(num_rectangulos)]
+        results = [pool.apply_async(
+            self.calcular, args=(funcion, x, ancho)) for x in xs]
 
-            alturas = pool.map(evaluar_funcion_parcial, [a + i * ancho for i in range(num_rectangulos)])
+        areas = [result.get() for result in results]
+        # print("X final: ", xs[-1])
+        print(areas[0])
+        total_area = sum(areas)
+        print(total_area)
+        self.enviar_mensaje("rpta " + str(total_area))
 
-        print("bandera 3")
-        # Calcular las áreas de los rectángulos en paralelo
-        areas = pool.starmap(self.calcular_area, [(ancho, altura) for altura in alturas])
+if __name__ == '__main__':
 
-        # Calcular la suma total de las áreas de los rectángulos
-        suma_areas = sum(areas)
-
-        print(suma_areas)
-        return suma_areas
-
-# Ejemplo de uso
-cliente = Client50(HOST, PORT)  # Crear instancia del cliente con la IP y el puerto del servidor
-cliente.conectar()  # Conectar al servidor
+    # Ejemplo de uso
+    cliente = Client50(HOST, PORT)  # Crear instancia del cliente con la IP y el puerto del servidor
+    cliente.conectar()  # Conectar al servidor
 
 
 
