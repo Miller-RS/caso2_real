@@ -52,10 +52,10 @@ public class TCPServer50 {
         int num_segments = (int) (segmentos / nrcli);
 
         //double numeroOriginal = 0.8455;
-        int lugaresDecimales = 1;
-        double factor = Math.pow(10, lugaresDecimales);
-        d = Math.floor(d * factor) / factor;
-        System.out.println(d);
+//        int lugaresDecimales = 1;
+//        double factor = Math.pow(10, lugaresDecimales);
+//        d = Math.floor(d * factor) / factor;
+//        System.out.println(d);
 
         for (int i = 1; i <= nrcli; i++) {
 
