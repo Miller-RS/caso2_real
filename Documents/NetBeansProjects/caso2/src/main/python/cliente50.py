@@ -82,7 +82,7 @@ class Client50:
         ancho = (b-a)/num_rectangulos
         print("Este es el valor del ancho: ", ancho)
         # calculamos x de la izquierda
-        xs = [5 + ancho*x for x in range(num_rectangulos)]
+        xs = [a + ancho*x for x in range(num_rectangulos)]
         print("Valores de X: ", xs)
         print(len(xs))
         results = [pool.apply_async(
